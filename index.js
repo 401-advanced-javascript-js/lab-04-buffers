@@ -14,7 +14,7 @@ loopJS.split('').forEach((encodedBit) => {
 });
 
 // write to file and console message once finished
-// writeFileAsync('files/loop.js', buffer).then(() => console.log('loop.js'));
+writeFileAsync('files/loop.js', buffer).then(() => console.log('loop.js'));
 
 // Part 2 ------------------------------------------------------------------------
 
@@ -24,66 +24,25 @@ readFileAsync('./files/pair-programming.txt')
     let html = Buffer.alloc(0);
 
     for (let line = lines.length - 1; line >= 0; line--) {
-
-      console.log('paragraph: ', lines[line].toString());
-      console.log('line: ', line);
-
       html = Buffer.concat([paragraphToList(lines[line]), html]);
       line--;
 
       if (isNumbered(lines[line]) && line > 0) {
-
-        console.log('section title: ', lines[line].toString());
-        console.log('line: ', line);
-
         html = Buffer.concat([addAroundBuffer(lines[line], '<h3>', '</h3>'), html]);
         line--;
 
         if (lines[line][0] !== 10 && line > 0) {
-
-          console.log('title 1: ', lines[line].toString());
-          console.log('line: ', line);
-
           html = Buffer.concat([addAroundBuffer(lines[line], '<h2>', '</h2>'), html]);
           line--;
         }
       } 
-
+      
       if (lines[line][0] !== 10 && line >= 0) {
-
-        console.log('title 2: ', lines[line].toString());
-        console.log('line: ', line);
-
         html = Buffer.concat([addAroundBuffer(lines[line], '<h2>', '</h2>'), html]);
         line--;
       }
     }
-
     return html;
-
-    // while (line >= 0) {
-
-    //   console.log(line, ':', lines[line].toString());
-    //   line--;
-      
-
-    // paragraph
-    // console.log(paragraphToList(lines[line]));
-    // html = Buffer.concat([paragraphToList(lines[line]), html]);
-    // line--;
-      
-    // if (isNumbered(lines[line])) {
-    //   html = Buffer.concat([addAroundBuffer(lines[line], '<h3>', '</h3>'), html]);
-    //   line--;
-    // }
-
-    // console.log(lines[line]);
-    // line = -1;
-    // section heading or title
-
-    // if section heading, add h3.
-    // check if next lin
-    // }
   })
   .then((htmlBuffer) => {
     writeFileAsync('./files/index.html', htmlBuffer)
