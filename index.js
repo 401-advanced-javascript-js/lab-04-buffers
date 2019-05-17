@@ -20,39 +20,70 @@ loopJS.split('').forEach((encodedBit) => {
 
 readFileAsync('./files/pair-programming.txt')
   .then((fileDataBuffer) => {
-    let textBlockBuffers = splitBuffer(fileDataBuffer, ['\n\n']);
+    let lines = splitBuffer(fileDataBuffer, [10]);
     let html = Buffer.alloc(0);
 
-    for (let block = 0; block < textBlockBuffers.length; block++) {
-      // each line in block as a buffer
-      let txtBlock = splitBuffer(textBlockBuffers[block], ['\n']);
+    for (let line = lines.length - 1; line >= 0; line--) {
 
-      // split last line into buffer for each sentence
-      let buffer = splitBuffer(txtBlock[txtBlock.length - 1], ['.']);
+      console.log('paragraph: ', lines[line].toString());
+      console.log('line: ', line);
 
-      // for each sentence add li tags and add to a buffer containing all list items
-      let listBuffer = Buffer.alloc(0);
-      for (let sentence = 0; sentence < buffer.length; sentence++) {
-        listBuffer = Buffer.concat([listBuffer, addAroundBuffer(buffer[sentence], '<li>', '</li>')]);
-      }
-      buffer = addAroundBuffer(listBuffer, '<ul>', '</ul>');
+      html = Buffer.concat([paragraphToList(lines[line]), html]);
+      line--;
 
-      console.log(txtBlock[0].toString(), '---------------------------------------', block);
-      // second line, h3 or h2
-      if (isNumbered(txtBlock[txtBlock.length - 2])) {
-        // h3 tags around
-        buffer = Buffer.concat([addAroundBuffer(txtBlock[txtBlock.length - 2], '<h3>', '</h3>'), buffer]);
+      if (isNumbered(lines[line]) && line > 0) {
 
-        // has section title
-        if (txtBlock.length - 3 === 0) {
-          buffer = Buffer.concat([addAroundBuffer(txtBlock[0], '<h2>', '</h2>'), buffer]);
+        console.log('section title: ', lines[line].toString());
+        console.log('line: ', line);
+
+        html = Buffer.concat([addAroundBuffer(lines[line], '<h3>', '</h3>'), html]);
+        line--;
+
+        if (lines[line][0] !== 10 && line > 0) {
+
+          console.log('title 1: ', lines[line].toString());
+          console.log('line: ', line);
+
+          html = Buffer.concat([addAroundBuffer(lines[line], '<h2>', '</h2>'), html]);
+          line--;
         }
-      } else {
-        buffer = Buffer.concat([addAroundBuffer(txtBlock[0], '<h2>', '</h2>'), buffer]);
+      } 
+
+      if (lines[line][0] !== 10 && line >= 0) {
+
+        console.log('title 2: ', lines[line].toString());
+        console.log('line: ', line);
+
+        html = Buffer.concat([addAroundBuffer(lines[line], '<h2>', '</h2>'), html]);
+        line--;
       }
-      html = Buffer.concat([html, buffer]);
     }
+
     return html;
+
+    // while (line >= 0) {
+
+    //   console.log(line, ':', lines[line].toString());
+    //   line--;
+      
+
+    // paragraph
+    // console.log(paragraphToList(lines[line]));
+    // html = Buffer.concat([paragraphToList(lines[line]), html]);
+    // line--;
+      
+    // if (isNumbered(lines[line])) {
+    //   html = Buffer.concat([addAroundBuffer(lines[line], '<h3>', '</h3>'), html]);
+    //   line--;
+    // }
+
+    // console.log(lines[line]);
+    // line = -1;
+    // section heading or title
+
+    // if section heading, add h3.
+    // check if next lin
+    // }
   })
   .then((htmlBuffer) => {
     writeFileAsync('./files/index.html', htmlBuffer)
@@ -63,8 +94,26 @@ readFileAsync('./files/pair-programming.txt')
   })
   .catch((err) => console.error(err));
 
+/**
+ * 
+ * @param {*} buffer 
+ */
+function paragraphToList(buffer) {
+  buffer = splitBuffer(buffer, [46, 33, 63]);
 
+  buffer[0] = addAroundBuffer(buffer[0], '<li>', '</li>');
+  for (let i = 1; i < buffer.length; i++) {
+    buffer[i] = addAroundBuffer(buffer[i], '<li>', '</li>');
+    buffer[0] = Buffer.concat([buffer[0], buffer[i]]);
+  }
 
+  return addAroundBuffer(buffer[0], '<ul>', '</ul>');
+}
+
+/**
+ * 
+ * @param {*} buffer 
+ */
 function isNumbered(buffer) {
   if (buffer[0] >= 48 && buffer[0] <= 57 && buffer[1] === 46) {
     return true;
@@ -73,6 +122,12 @@ function isNumbered(buffer) {
   }
 }
 
+/**
+ * 
+ * @param {*} buffer 
+ * @param {*} openTag 
+ * @param {*} closeTag 
+ */
 function addAroundBuffer(buffer, openTag, closeTag) {
   return Buffer.concat([Buffer.from(openTag), buffer, Buffer.from(closeTag)]);
 }
@@ -90,7 +145,7 @@ function splitBuffer(buffer, splitVals) {
     let nextIndex = indexOf(buffer, splitVals, i);
 
     if (nextIndex !== -1) {
-      arrayOfBuffers.push(buffer.slice(i, nextIndex+1));
+      arrayOfBuffers.push(buffer.slice(i, nextIndex + 1));
       i = nextIndex;
     } else if (i < buffer.length) {
       arrayOfBuffers.push(buffer.slice(i, buffer.length));
@@ -101,15 +156,15 @@ function splitBuffer(buffer, splitVals) {
 }
 
 /**
- * 
- * @param {*} buffer 
- * @param {*} values 
- * @param {*} start 
+ *
+ * @param {*} buffer
+ * @param {*} values
+ * @param {*} start
  */
 function indexOf(buffer, values, start) {
-
+  // values.map(val => val.hexDecode());
   for (let i = start; i < buffer.length; i++) {
-    if (values.includes(buffer[i].toString())) {
+    if (values.includes(buffer[i])) {
       return i;
     }
   }
