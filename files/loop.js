@@ -1,0 +1,1 @@
+'use strict'; ['Jake', 'John', 'Jill'].forEach((name) => console.log(name));
